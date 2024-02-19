@@ -1,0 +1,53 @@
+version: "3.8"
+services:
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    restart: always
+    ports:
+     - 50000:3000
+    volumes:
+     - ./grafana_storage:/var/lib/grafana
+     - ./grafana.ini:/etc/grafana/grafana.ini
+
+  prometheus:
+    image: prom/prometheus
+    restart: always
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+  postgres:
+    image: 'postgres:latest'
+    restart: always
+    ports:
+      - 50001:5432
+    environment:
+      POSTGRES_USER: grafana
+      POSTGRES_PASSWORD: grafana
+      POSTGRES_DB: grafana
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    restart: always
+    environment:
+      DATA_SOURCE_NAME: "postgresql://grafana:grafana@postgres:5432/grafana?sslmode=disable"
+    links:
+      - postgres
+      - prometheus
+
+  node-exporter:
+    image: prom/node-exporter
+    restart: always
+
