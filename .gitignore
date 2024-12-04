@@ -1,2 +1,4 @@
 grafana_storage
 grafana.ini
+.env
+postgres_data
